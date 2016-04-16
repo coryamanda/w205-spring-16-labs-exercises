@@ -10,10 +10,10 @@ from streamparse.spout import Spout
 # Twitter credentials
 ################################################################################
 twitter_credentials = {
-    "consumer_key"        :  "taJtepnOHlgmlJdROpdzZUrcc",
-    "consumer_secret"     :  "XudpgIrxVK6QYVdN4lrp9s6fFYywtZP4n7523qCgx2cQK3qTPB",
-    "access_token"        :  "114779241-p9NEmUvAcPKoQumwgasikZMGh90m75fxtk47CA8C",
-    "access_token_secret" :  "1iF6u9PZZqx8mxuxudIzPpzj4w5O66RH2JGJoUv00yPlP",
+    "consumer_key"        :  "jufkJ26WEHgWNjq3DXAKftBlG",
+    "consumer_secret"     :  "Ye5BPPXrLEppd04yVsLuArx7H6xzLKGnM7HCRN7npF6Um1lxH8",
+    "access_token"        :  "287489467-vZ8H4lZaYZklmyGKNxgM5EoSa0NJRbx7eoUK8kkM",
+    "access_token_secret" :  "m3xuwEsYPCvHRLNw2zqMtkGe4S7P06pCJ2Qk8v7QsWTpi",
 }
 
 def auth_get(auth_key):
@@ -27,63 +27,61 @@ def auth_get(auth_key):
 class TweetStreamListener(tweepy.StreamListener):
 
     def __init__(self, listener):
-        self.listener = listener
-        super(self.__class__, self).__init__(listener.tweepy_api())
+      self.listener = listener
+      super(self.__class__, self).__init__(listener.tweepy_api())
 
     def on_status(self, status):
-        self.listener.queue().put(status.text, timeout = 0.01)
-        return True
+      self.listener.queue().put(status.text, timeout = 0.01)
+      return True
 
     def on_error(self, status_code):
-        return True # keep stream alive
+      return True # keep stream alive
 
     def on_limit(self, track):
-        return True # keep stream alive
+      return True # keep stream alive
 
 class Tweets(Spout):
 
     def initialize(self, stormconf, context):
-        self._queue = Queue.Queue(maxsize = 100)
+      self._queue = Queue.Queue(maxsize = 100)
 
-        consumer_key = auth_get("consumer_key")
-        consumer_secret = auth_get("consumer_secret")
-        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+      consumer_key = auth_get("consumer_key")
+      consumer_secret = auth_get("consumer_secret")
+      auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 
-        if auth_get("access_token") and auth_get("access_token_secret"):
-            access_token = auth_get("access_token")
-            access_token_secret = auth_get("access_token_secret")
-            auth.set_access_token(access_token, access_token_secret)
+      if auth_get("access_token") and auth_get("access_token_secret"):
+        access_token = auth_get("access_token")
+        access_token_secret = auth_get("access_token_secret")
+        auth.set_access_token(access_token, access_token_secret)
 
-        self._tweepy_api = tweepy.API(auth)
+      self._tweepy_api = tweepy.API(auth)
 
-        # Create the listener for twitter stream
-        listener = TweetStreamListener(self)
+      # Create the listener for twitter stream
+      listener = TweetStreamListener(self)
 
-        # Create the stream and listen for english tweets
-        stream = tweepy.Stream(auth, listener, timeout=None)
-        stream.filter(languages=["en"], track=["a", "the", "i", "you", "u"], async=True)
+      # Create the stream and listen for english tweets
+      stream = tweepy.Stream(auth, listener, timeout=None)
+      stream.filter(languages=["en"], track=["a", "the", "i", "you", "u"], async=True)
 
     def queue(self):
-        return self._queue
+      return self._queue
 
     def tweepy_api(self):
-        return self._tweepy_api
+      return self._tweepy_api
 
     def next_tuple(self):
-        try:
-            tweet = self.queue().get(timeout = 0.1)
-            if tweet:
-                self.queue().task_done()
-                self.emit([tweet])
+      try:
+        tweet = self.queue().get(timeout = 0.1)
+        if tweet:
+          self.queue().task_done()
+          self.emit([tweet])
 
-        except Queue.Empty:
-            self.log("Empty queue exception ")
-            time.sleep(0.1)
+      except Queue.Empty:
+        #self.log("Empty queue exception ") #Rather than log the error I'm just going to let it sleep
+        time.sleep(0.1)
 
     def ack(self, tup_id):
-        pass  # if a tuple is processed properly, do nothing
+      pass  # if a tuple is processed properly, do nothing
 
     def fail(self, tup_id):
-        pass  # if a tuple fails to process, do nothing
-
-
+      pass  # if a tuple fails to process, do nothing

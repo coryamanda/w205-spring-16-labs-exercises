@@ -1,50 +1,18 @@
-ASSUMPTIONS:
-------------
-Instance is created using UCB W205 Spring 2016 (ami-be0d5fd4)
-setup_ucb_complete_plus_postgres.sh had been run successfully per Lab2 instruction
-Python 2.7.3 
-PostgreSQL 8.4.20
-StreamParse, psycopg2 and tweepy had been installed as described in step-1 and step-2 sections in Exercise-2 instruction
+Goal of this project:
+The goal of the project is to collect tweets from the Twitter stream, parse them into words, store the counts in a Postgres database, and make the results available to the user interactively through Python query scripts. The hope is to use this data to understand interesting trends on Twitter either real-time or close to real time.
 
+How to use this application:
+- Create an instance of the community AMI UCB W205 Spring Ex 2 Image and connect to it as you normally would. Attach a volume on which HDFS and Postgres are already installed and configured. (In this case, I used the volume created in Labs 2 and 3.)
 
-STEPS TO RUN EX2:
------------------
+- Run bash-setup.sh. This script mounts the data volume, starts Hadoop and Postgres, activates the correct Python bin so we are using 2.7, and installs psycopg2 and tweepy if needed. Next, it creates an Apache Storm project called EXTweetwordcount, clones my repo on github, and transfers the appropriate files into the new Storm project. Finally, it creates a new database and table in Postgres to store the tweets as they are parsed.
 
-1.	log into EC2 instance
+- Change directory to the new EXTweetwordcount application. (cd EXTweetwordcount)
 
-2.	copy all the directories and files of "exercise_2" pulled from Github submission. 
+- Update the file Twittercredentials.py with valid credentials, as these cannot be shared publicly. Save and close the file. (cd EXTweetwordcount)
 
-3.	“exercise_2” is now the root directory
+- Run Storm tweetwordcount application. (sparse run)
 
-     cd exercise_2
+- After the application has run for a sufficiently long period of time, use ctrl-c to exit the stream. Based on the data collected running hello-stream, the application downloads about 40 tweets per second. 
 
-4.	under exercise_2, run the database set up script. This should mount /data directory and start postgres.
+- Move to the directory where the serving scripts are stored and use them to explore the data collected. There are further instructions about these files, their arguments, and their outputs in the /serving directory. (cd ..; cd w205-spring-16-labs-exercises/serving)
 
-     chmod a+x db_setup.sh
-     bash ex2_db_setup.sh
-
-5.	Change directory into tweetwordcount application
-
-     cd tweetwordcount
-
-6.	Run tweetwordcount application
-
-     sparse run
-
-7.	Press Enter/Return to continue as root. Let the application run for a couple of minutes and press control-c to interrupt the streaming.
-
-8.	Go back to exercise_2 directory
-
-     cd ..
-
-9.	Run finalresults.py without argument
-
-     python serving/finalresults.py
-
-10.	Run finalresults.py with argument
-
-     python serving/finalresults.py the
-
-11.	Run histogram.py with arguments
-
-     python serving/histogram.py 9,10

@@ -1,41 +1,33 @@
 import psycopg2
 import sys
-import re
-
-conn = psycopg2.connect(database="tcount", user="postgres", password="pass", host="localhost", port="5432")
-cur = conn.cursor()
 
 if len(sys.argv) == 2:
+    passed = sys.argv[1]
+    try:
+        lower, upper = passed.split(",")
+    except:
+        sys.exit("Oops! Please try again, I need two words with a comma in the middle!")
 
-  # Default bounds
-  lower, upper = 0, 0
-
-  bounds = str.strip(sys.argv[1])
-
-  # Simple rex check to make sure bounds is entered as "int,int"
-  if not bool(re.match(r'^[0-9]+,[0-9]+$', bounds)):
-    print "ERROR: invalid input. Bounds need to be k1,k2 where both k1 and k2 are integers"
-    print ""
-  else:
-    lower = int(bounds.split(',')[0])
-    upper = int(bounds.split(',')[1])
+    upper = int(upper)
+    lower = int(lower)
 
     if lower > upper:
-      print "ERROR: in bounds [k1,k2], k1 must be smaller or equal to k2"
-      print ""
-    else:
-      sql = "SELECT word, count FROM tweetwordcount WHERE count BETWEEN %s AND %s ORDER by count DESC;"%(str(lower), str(upper))
-      cur.execute(sql)
+        print "Swapping upper and lower bounds..."
+        temp = lower
+        lower = upper
+        upper = temp
 
-      records = cur.fetchall()
-      for rec in records:
-        print "%20s: %4s"%(rec[0], rec[1])
+    conn = psycopg2.connect(database="tcount", user="postgres", password="pass", host="localhost", port="5432")
+    cur = conn.cursor()
+
+    sql = "SELECT * FROM tweetwordcount WHERE count BETWEEN %s AND %s ORDER BY count DESC;" % (str(lower), str(upper))
+    cur.execute(sql)
+    records = cur.fetchall()
+    for rec in records:
+        print str(rec[0]) + ": "+ str(rec[1])
+
+    conn.commit()
+    conn.close()
 
 else:
-  print "usage: python histogram.py k1,k2"
-  print "k1: lower bound of word count query"
-  print "k2: upper bound of word count query"
-  print ""
-
-conn.commit()
-conn.close()
+    print "Oops! Please try again with two valid numbers with a comma in the middle. Maybe you added an extra space?"

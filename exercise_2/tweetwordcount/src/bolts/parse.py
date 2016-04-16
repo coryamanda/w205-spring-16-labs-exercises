@@ -21,28 +21,28 @@ class ParseTweet(Bolt):
         valid_words = []
         for word in words:
 
-            # Filter the hash tags
-            if word.startswith("#"): continue
+        # Filter the hash tags
+        if word.startswith("#"): continue
 
-            # Filter the user mentions
-            if word.startswith("@"): continue
+        # Filter the user mentions
+        if word.startswith("@"): continue
 
-            # Filter out retweet tags
-            if word.startswith("RT"): continue
+        # Filter out retweet tags
+        if word.startswith("RT"): continue
 
-            # Filter out the urls
-            if word.startswith("http"): continue
+        # Filter out the urls
+        if word.startswith("http"): continue
 
-            # Strip leading and lagging punctuations
-            aword = word.strip("\"?><,'.:;)")
+        # Strip leading and lagging punctuations (added exclamation points and asterisks to this because I was noticing them often in the parsed words)
+        aword = word.strip("\"?><,'.:*;)!")
 
-            # now check if the word contains only ascii
-            if len(aword) > 0 and ascii_string(word):
-                valid_words.append([aword])
+        # now check if the word contains only ascii
+        if len(aword) > 0 and ascii_string(word):
+            valid_words.append([aword.upper()]) #Converting to upper case so it doesn't count words multiple times
 
-        if not valid_words: return
+    if not valid_words: return
 
-        # Emit all the words
-        self.emit_many(valid_words)
+    # Emit all the words
+    self.emit_many(valid_words)
 
-        # tuple acknowledgement is handled automatically
+    # tuple acknowledgement is handled automatically
